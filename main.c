@@ -10,11 +10,44 @@
 #include <string.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <unistd.h>
 #include "crc32.h"
 #include "crackcrc32.h"
 
-int CrackCrc32(char *szbuf,int nSize)
-{
+CRACK_THREAD_INFO crack_thread_info;
+
+void *crack_crc32(void *arg){
+    
+    PTHREAD_PARAMTERS pthread_paramters = 0;
+    long current_length = 0;
+    unsigned long crc32 = 0;
+    
+    pthread_paramters = arg;
+    crc32 = crack_thread_info.check_crc32;
+    
+    for (long i = pthread_paramters->calc_length;i >= 0;i--)
+    {
+        for (long j = 0;j <= i;j++)
+        {
+            current_length = i;
+            
+            crc32Init(&crc32);
+            crc32Update(&crc32,(char*)((long)crack_thread_info.szDat + j),current_length - j);
+            crc32Finish(&crc32);
+            sleep(1);
+            if (crc32 == 0 || crc32 == 0xFFFFFFFF)
+            {
+                continue;
+            }
+            printf("ThreadCount:  %08lx\tOffset:  %08lx\tLength:  %08lx\tCrc32:  %08lx\tCrc32Check:  %08lx\r\n", \
+                   crack_thread_info.thread_count,j,current_length - j,crc32,0xFFFFFFFF ^ crc32);
+            if (crack_thread_info.check_crc32 == ((long)0xFFFFFFFF ^ crc32))
+            {
+                printf("Finder,Start Offset:   %08lx\t\t,End Offset:   %08lx\r\n",j,i);
+            }
+            
+        }
+    }
     return 0;
 }
 
@@ -23,7 +56,9 @@ int main(int argc, const char * argv[])
     FILE *fpHdr = 0;
     long size = 0,tmp_size = 0;
     long items = 0;
-    CRACK_THREAD_INFO crack_thread_info;
+    int isthread_success = 0;
+    void *res = 0;
+    int n_status = 0;
     
     memset(&crack_thread_info,0,sizeof(CRACK_THREAD_INFO));
     
@@ -59,15 +94,31 @@ int main(int argc, const char * argv[])
             crack_thread_info.check_crc32 = *(long *)((long)crack_thread_info.szDat + tmp_size);
             if (0 > crack_thread_info.check_crc32) {
                 do {
-                    crack_thread_info.ThreadParamters[crack_thread_info.thread_count].calc_length = \
-                    size;
-                    crack_thread_info.thread[crack_thread_info.thread_count] = \
-                    pthread_create(&crack_thread_info.thread[crack_thread_info.thread_count], , <#void *(*)(void *)#>, <#void *restrict#>)
+                    crack_thread_info.ThreadParamters[crack_thread_info.thread_count].calc_length = size;
+                    isthread_success = pthread_create(&crack_thread_info.thread[crack_thread_info.thread_count], 0, crack_crc32, &crack_thread_info.ThreadParamters[crack_thread_info.thread_count]);
+                    if (0 == isthread_success) {
+                        crack_thread_info.thread_count++;
+                        if (tmp_size < 0x5000) {
+                            break;
+                        }
+                        tmp_size -= 0x5000;
+                        if (crack_thread_info.thread_count >= 64) {
+                            break;
+                        }
+                    }
                 } while (tmp_size != 0);
+                for (int i; i < crack_thread_info.thread_count; i++) {
+                    n_status = pthread_join(crack_thread_info.thread[i], &res);
+                    if (n_status != 0) {
+                        printf("main(): pthread_join failed,thread id:%08lx",(unsigned long)crack_thread_info.thread[i]);
+                    }
+                }
             }
+            
         }
     }else {
         printf("main(): argv,paramters error.\r\n");
     }
+    
     return 0;
 }
