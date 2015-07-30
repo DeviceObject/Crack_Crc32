@@ -14,7 +14,7 @@
 #endif /* defined(__CrackCrc32__crc32__) */
 
 
-void crc32Init(unsigned long *pCrc32);
-void crc32Update(unsigned long *pCrc32, const char *pData, unsigned long uSize);
-void crc32Finish(unsigned long *pCrc32);
+void crc32Init(unsigned int *pCrc32);
+void crc32Update(unsigned int *pCrc32, const char *pData, unsigned int uSize);
+void crc32Finish(unsigned int *pCrc32);
 

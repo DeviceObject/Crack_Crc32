@@ -75,21 +75,21 @@ static unsigned long crc32tab[] = {
     0xB40BBE37L, 0xC30C8EA1L, 0x5A05DF1BL, 0x2D02EF8DL
 };
 
-void crc32Init(unsigned long *pCrc32)
+void crc32Init(unsigned int *pCrc32)
 {
     *pCrc32 = 0xFFFFFFFF;
 }
 
-void crc32Update(unsigned long *pCrc32, const char *pData, unsigned long uSize)
+void crc32Update(unsigned int *pCrc32, const char *pData, unsigned int uSize)
 {
-    unsigned long i = 0;
+    unsigned int i = 0;
     
     for(i = 0; i < uSize; i++)
-        *pCrc32 = ((*pCrc32) >> 8) ^ crc32tab[(pData[i]) ^ ((*pCrc32) & 0x000000FF)];
+        *pCrc32 = ((*(int*)pCrc32) >> 8) ^ crc32tab[(pData[i]) ^ ((*(int*)pCrc32) & 0x000000FF)];
 }
 
 // Make the final adjustment
-void crc32Finish(unsigned long *pCrc32)
+void crc32Finish(unsigned int *pCrc32)
 {
     *pCrc32 = ~(*pCrc32);
 }

@@ -16,14 +16,14 @@
 
 typedef struct  _THREAD_PARAMTERS
 {
-    long calc_length;
+    int calc_length;
 }THREAD_PARAMTERS,*PTHREAD_PARAMTERS;
 
 typedef struct _CRACK_THREAD_INFO
 {
     char *szDat;
-    long thread_count;
-    long check_crc32;
+    int thread_count;
+    int check_crc32;
     pthread_t thread[64];
     THREAD_PARAMTERS ThreadParamters[0x500];
 }CRACK_THREAD_INFO,*PCRACK_THREAD_INFO;
