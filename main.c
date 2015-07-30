@@ -116,6 +116,8 @@ int main(int argc, const char * argv[])
             }
             
         }
+        fclose(fpHdr);
+        free(crack_thread_info.szDat);
     }else {
         printf("main(): argv,paramters error.\r\n");
     }
